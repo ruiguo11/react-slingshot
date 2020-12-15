@@ -5,9 +5,51 @@ orbs:
   # Declare a dependency on the welcome-orb
   welcome: circleci/welcome-orb@0.4.1
 # Orchestrate or schedule a set of jobs
+jobs:
+  build:
+    docker:
+      -image: cicleci/node:13.8.0
+    steps:
+      - checkout
+      - run: npm i
+      - save_cache:  
+        key: "npm-packages"
+        paths:
+          - /src/node_modules
+      - npm run lint
+  test:
+    docker:
+     -image: cicleci/node:13.8.0
+    steps:
+      - checkout
+      - resore_coche:
+        keys:
+          - "npm-packages"
+      - run: npm i
+      - run : npm run test
+  analyze:
+    docker:
+      -image: cicleci/node:13.8.0
+    steps:
+      - checkout
+      - resore_coche:
+        keys:
+          - "npm-packages"
+      - run: npm dudit
+      
+  
+    
+
+
 workflows:
   # Name the workflow "welcome"
   welcome:
     # Run the welcome/run job in its own container
     jobs:
-      - welcome/run
+      - build
+      - test:
+          requires:
+            - build
+      - analyze:
+          requires:
+            - test
